@@ -1,0 +1,11 @@
+# Construindo pacote DEBIAN e instalando com o DPKG.
+(1) baixar o repositorio GIT localmente
+    $ cd /tmp
+    $ git clone https://github.com/SocializandoSaberes/cobertura-socializando-saberes.git
+
+(2) gerar pacote debian
+    $ dpkg-deb -b /tmp/cobertura-socializando-saberes /tmp
+
+(3) instalar pacote debian
+    $ dpkg -i /tmp/cobertura-socializando-saberes_0.1_amd64.deb
+
