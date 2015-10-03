@@ -9,7 +9,7 @@ dvswitch, dvsource, dvsink (instalar a partir da distribuicao WHEEZY do Debian)
 Os icones ficarao disponiveis no menu "Outros (Other)" do GNOME-SHELL.
 - DVSwitch
 - Captura Disponitivo
-- Captura Áudio
-- Captura Arquivo
+- Captura Placa Audio
+- Captura Arquivo de Imagem (PNG, JPG)
 - Transmissão
 - Encerrar Ferramentas de Coberturas 
