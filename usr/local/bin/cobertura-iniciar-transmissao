@@ -1,0 +1,260 @@
+#!/bin/bash
+#
+#########################################################################
+#
+# This file is part of "cobertura-socializando-saberes".
+#
+#    Foobar is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Foobar is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Tradução não-oficial:
+#
+#    Este arquivo é parte do programa Foobar
+#
+#    Foobar é um software livre; você pode redistribuí-lo e/ou 
+#    modificá-lo dentro dos termos da Licença Pública Geral GNU como 
+#    publicada pela Fundação do Software Livre (FSF); na versão 3 da 
+#    Licença, ou (na sua opinião) qualquer versão.
+#
+#    Este programa é distribuído na esperança de que possa ser  útil, 
+#    mas SEM NENHUMA GARANTIA; sem uma garantia implícita de ADEQUAÇÃO
+#    a qualquer MERCADO ou APLICAÇÃO EM PARTICULAR. Veja a
+#    Licença Pública Geral GNU para maiores detalhes.
+#
+#    Você deve ter recebido uma cópia da Licença Pública Geral GNU junto
+#    com este programa, Se não, veja <http://www.gnu.org/licenses/>.
+#
+#########################################################################
+#
+# cobertura-socializando-saberes
+# ---
+# Ferramentas (scripts) para cobertura colaborativa online (streaming) 
+# usando DVSWITCH, FFMPEG, AVCONV, etc.
+# ---
+# Autor: Junior Paixao <junior.campinas@gmail.com
+# Coletivo Socializando Saberes (http://socializandosaberes.net.br)
+# https://github.com/SocializandoSaberes/cobertura-socializando-saberes
+# --- 
+# Este script roda em qualquer GNU/Linux.
+# Assumimos que os pacotes ZENITY, VLC, FFMPEG, AVCONV (libav-tools), 
+# FFMPEG2THEORA, OGGFWD e o pacote DVSWITCH (dvswitch, dvsource e dvsink)
+# ja estao instalados.
+#
+#########################################################################
+
+PATH="$HOME/bin:/sbin:/usr/sbin:/usr/local/sbin:/bin:/usr/bin:/usr/local/bin"
+
+# Load the VERBOSE setting and other rcS variables
+. /lib/init/vars.sh
+
+# Define LSB log_* functions.
+. /lib/lsb/init-functions
+
+
+###################################################################
+# FUNCOES
+#
+# Conjunto de funcoes usadas 
+#
+do_start_dvswitch()
+{
+	case ${BANDA} in
+	4g)
+		if [ -n "${ARQUIVOGRAVACAO}" ]; then
+			dvsink-files ${ARQUIVOGRAVACAO} & 2>& 1>/dev/null
+		fi
+
+		dvsink-command -- \
+			ffmpeg2theora --no-skeleton -F 16 -V 200 -c 1 -A 32 -H 22050 -o - -f dv -x 320 -y 240 --aspect ${TELA} --deinterlace - \
+			| oggfwd -n "${NOMEDAATIVIDADE}" -d "Cobertura Colaborativa Online" -g "Ao Vivo" -u "http://socializandosaberes.net.br/" ${SERVIDOR} ${PORTA} ${SENHA} /${NOMEDOCANAL}
+		;;
+
+	3g)
+		if [ -n "${ARQUIVOGRAVACAO}" ]; then
+		    dvsink-files ${ARQUIVOGRAVACAO} & 2>& 1>/dev/null
+		fi
+
+		dvsink-command -- \
+			ffmpeg2theora --no-skeleton -F 25:2 -V 200 -c 1 -A 32 -H 22050 -o - -f dv -x 320 -y 240 --aspect ${TELA} --deinterlace - \
+			| oggfwd -n "${NOMEDAATIVIDADE}" -d "Cobertura Colaborativa Online" -g "Ao Vivo" -u "http://socializandosaberes.net.br/" ${SERVIDOR} ${PORTA} ${SENHA} /${NOMEDOCANAL}
+		;;
+
+	esac
+}
+
+do_verificando_permissoes()
+{
+	# Verificando as permissoes para realizar a transmissao do streaming ...
+	CONEXAOACESSO=$(zenity --title "[[ Verificando permissoes de acesso ]]" \
+			--width 500 --height 300 --ok-label="Iniciar"  \
+			--password --username \
+			--text="Qual a senha de aceso a transmissao do streaming?")
+	RESULT=$?
+	if [ "$RESULT" != 0 ]; then
+	    zenity --title "[[ Verificando permissoes de acesso ]]" \
+		--error --text="Conexão cancelada!"
+	    exit 0
+	fi
+
+	if [ "$CONEXAOACESSO" != "$(cat $HOME/bin/.usuarios)" ]; then
+	    zenity --title "[[ Verificando permissoes de acesso ]]" \
+		--error --text="Dados de acesso incorretos! Tente novamente."
+	    exit 0
+	fi
+}
+
+do_verificando_processos()
+{
+	# Verificando se ja existe um processo de conexao iniciado ... 
+	STATUS=$(pidof ffmpeg2theora)
+	if [ ! -z "$STATUS" ]; then 
+	    zenity --title "[[ Verificando se ja existe conexao ativa ]]" \
+		--question --text="Você já está transmitindo! Deseja encerrar sua transmissao?"
+	    RESULT=$?
+	    if [ "$RESULT" = 0 ]; then
+		kill $STATUS 2>&1 1>/dev/null | zenity --progress --text="Conexão encerrada!" --pulsate --auto-kill
+	    fi
+
+	    exit 0
+	fi
+}
+
+do_definindo_informacoes_da_transmissao()
+{
+	# Definindo as informacoes da transmissao
+	OUTPUT=$(zenity --forms --width 700 --title="[[ Definindo as informacoes da transmissao ]]" \
+		--text="Entre com as informações da transmissão." \
+		--separator=";" \
+		--add-entry="Nome da Atividade" \
+		--add-entry="Nome do Canal" \
+		--add-entry="Senha do Canal " \
+		--add-entry="Servidor ([TV1], [TV2])" \
+		--add-entry="Porta do Servidor ([8000],[8008])" \
+		--add-entry="Largura de Banda ( [3g] ou [4g] )" \
+		--add-entry="Aspecto da tela ( [4:3] ou [16:9] )" \
+		--add-entry="Gravar cobertura ([S]im ou [N]ao )" \
+		--add-calendar="Data da transmissão" > $HOME/.cobertura.csv)
+
+	case $? in
+	    0)
+		NOMEDAATIVIDADE=$(awk -F ';' '{print $1}' $HOME/.cobertura.csv)
+		NOMEDOCANAL=$(awk -F ';' '{print $2}' $HOME/.cobertura.csv)
+		SENHA=$(awk -F ';' '{print $3}' $HOME/.cobertura.csv)
+		SERVIDORRTMP=$(awk -F ';' '{print $4}' $HOME/.cobertura.csv)
+		PORTA=$(awk -F ';' '{print $5}' $HOME/.cobertura.csv)
+		BANDA=$(awk -F ';' '{print $6}' $HOME/.cobertura.csv)
+		TELA=$(awk -F ';' '{print $7}' $HOME/.cobertura.csv)
+		GRAVARCANAL=$(awk -F ';' '{print $8}' $HOME/.cobertura.csv)
+		DATACOBERTURA=$(awk -F ';' '{print $9}' $HOME/.cobertura.csv)
+
+		echo "${DATACOBERTURA} - ${NOMEDAATIVIDADE}" > $HOME/.cobertura.csv
+
+		;;
+	    1)
+		zenity --title="[[ Definindo as informacoes da transmissao ]]" \
+		       --error --text="Transmissao CANCELADA!"
+		exit 1
+		;;
+	    -1)
+		zenity --title="[[ Definindo as informacoes da transmissao ]]" \
+		       --error --text="ERROR inesperado! Tente novamente."
+		exit 1
+		;;
+	esac
+}
+
+do_solicitando_nome_do_arquivo_de_gravacao()
+{
+	# Solicitando nome no arquivo para gravar a cobertura...
+	case "$GRAVARCANAL" in
+	     "S")
+			# Verificando se ja existe um arquivo de gravacao aberto ... 
+			STATUS=$(pidof dvsink-files)
+			if [ ! -z "$STATUS" ]; then
+				ARQUIVOABERTO=$(ps -p $STATUS -o command=) 
+				zenity --title "[[ Verificando se ja existe arquivo de gravacao aberto ]]" \
+				--question --text="Você já está com um arquivo de gravacao aberto!\n\n$ARQUIVOABERTO\n\nDeseja substituir esse arquivo?"
+				RESULT=$?
+				if [ "$RESULT" = 0 ]; then
+					kill $STATUS 2>&1 1>/dev/null 
+				else
+					ARQUIVOGRAVACAO=""
+					return 0
+				fi
+			fi
+
+		    ARQUIVOGRAVACAO=$(zenity --file-selection --title="Defina o arquivo para gravar esta Cobertura")
+			case $? in
+			1)
+				zenity --title "[[ Definindo opcoes de gravacao ]]" \
+				--question --text="Nenhum arquivo foi definido! Continuar mesmo assim?"
+				RESULT=$?
+				if [ "$RESULT" = 0 ]; then
+					ARQUIVOGRAVACAO=""
+					return 0
+				else
+		            exit 0
+				fi
+		        ;;
+
+		        -1)
+		            zenity --title "[[ Definindo opcoes de gravacao ]]" \
+		            --error --text="Aconteceu um erro inesperado!"
+		            exit 0
+		        ;;
+		 
+		        *)
+		            zenity --info --ok-label="Continuar" --text="Arquivo de gravacao definido: [${ARQUIVOGRAVACAO}]."
+		        ;;
+		    esac
+	     ;;
+	     "N")
+		    ARQUIVOGRAVACAO=""
+	     ;;
+	esac
+}
+
+do_definindo_servidor_de_streaming()
+{
+	# Definindo os dados do servidor a partir da escolha ...
+	case "$SERVIDORRTMP" in
+	"TV1")
+		SERVIDOR="tv.socializandosaberes.net.br"
+		log_daemon_msg "Tramsmitindo para " "Icecast Media Server - ${SERVIDOR}"
+		do_start_dvswitch 2>& 1>/dev/null | zenity --title "[[ JANELA DE TRANSMISSAO ]]" --text-info --ok-label="Parar Transmissao" --width 900 --height 400 --text="Conectando ao Servidor Icecast... "
+		;;
+	"TV2")
+		SERVIDOR="tv2.socializandosaberes.net.br"
+		log_daemon_msg "Tramsmitindo para " "Icecast Media Server - ${SERVIDOR}"
+		do_start_dvswitch 2>& 1>/dev/null | zenity --title "[[ JANELA DE TRANSMISSAO ]]" --text-info --ok-label="Parar Transmissao" --width 900 --height 400 --text="Conectando ao Servidor Icecast... "
+		;;
+
+	esac
+}
+
+do_iniciando_a_transmissao()
+{
+	do_definindo_servidor_de_streaming
+}
+
+#################################################
+# EXECUTANDO
+#
+#
+#do_verificando_permissoes
+do_verificando_processos
+do_definindo_informacoes_da_transmissao
+do_solicitando_nome_do_arquivo_de_gravacao
+do_iniciando_a_transmissao
+
+exit 0

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=Captura Placa de Audio
+Comment=Inicia a captura da placa de audio do computador (ALSA).
+Exec=dvsource-alsa -s ntsc -r 48000
+Icon=/usr/share/icons/cobertura/audio-card.png
+Terminal=false
+Categories=GNOME;Cobertura;Internet

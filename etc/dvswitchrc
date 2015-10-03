@@ -1,0 +1,2 @@
+MIXER_PORT=60013
+MIXER_HOST=localhost

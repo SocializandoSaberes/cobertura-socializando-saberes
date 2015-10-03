@@ -1,0 +1,140 @@
+#!/bin/bash
+#
+#########################################################################
+#
+# This file is part of "cobertura-socializando-saberes".
+#
+#    Foobar is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Foobar is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Tradução não-oficial:
+#
+#    Este arquivo é parte do programa Foobar
+#
+#    Foobar é um software livre; você pode redistribuí-lo e/ou 
+#    modificá-lo dentro dos termos da Licença Pública Geral GNU como 
+#    publicada pela Fundação do Software Livre (FSF); na versão 3 da 
+#    Licença, ou (na sua opinião) qualquer versão.
+#
+#    Este programa é distribuído na esperança de que possa ser  útil, 
+#    mas SEM NENHUMA GARANTIA; sem uma garantia implícita de ADEQUAÇÃO
+#    a qualquer MERCADO ou APLICAÇÃO EM PARTICULAR. Veja a
+#    Licença Pública Geral GNU para maiores detalhes.
+#
+#    Você deve ter recebido uma cópia da Licença Pública Geral GNU junto
+#    com este programa, Se não, veja <http://www.gnu.org/licenses/>.
+#
+#########################################################################
+#
+# cobertura-socializando-saberes
+# ---
+# Ferramentas (scripts) para cobertura colaborativa online (streaming) 
+# usando DVSWITCH, FFMPEG, AVCONV, etc.
+# ---
+# Autor: Junior Paixao <junior.campinas@gmail.com
+# Coletivo Socializando Saberes (http://socializandosaberes.net.br)
+# https://github.com/SocializandoSaberes/cobertura-socializando-saberes
+# --- 
+# Este script roda em qualquer GNU/Linux.
+# Assumimos que os pacotes ZENITY, VLC, FFMPEG, AVCONV (libav-tools), 
+# FFMPEG2THEORA, OGGFWD e o pacote DVSWITCH (dvswitch, dvsource e dvsink)
+# ja estao instalados.
+#
+#########################################################################
+
+PATH="$HOME/bin:/sbin:/usr/sbin:/usr/local/sbin:/bin:/usr/bin:/usr/local/bin"
+
+# Load the VERBOSE setting and other rcS variables
+. /lib/init/vars.sh
+
+# Define LSB log_* functions.
+. /lib/lsb/init-functions
+
+
+###################################################################
+# FUNCOES
+#
+# Conjunto de funcoes usadas 
+#
+do_start_firewire_dvswitch()
+{
+    # Captura Firewire
+    dvsource-firewire
+}
+do_start_usb_dvswitch()
+{
+    # Captura WebCam
+    avconv -f video4linux2 -i $1 -an -target ntsc-dv - | dvsource-file /dev/stdin
+}
+do_start_desktop_dvswitch()
+{
+    # Captura Desktop
+    avconv -f x11grab -follow_mouse 1 -s svga -r 15 -i :0.0+0,0 -target ntsc-dv - | dvsource-file /dev/stdin
+}
+
+# Verificando se ja esta conectado... 
+STATUS=$(pidof somagic-capture)
+if [ ! -z "$STATUS" ]; then 
+    zenity --window-icon=/usr/share/pixmaps/gnome-windows.png --title "Captura de Audio/Video" \
+        --question --text="Você já está capturando! Deseja encerrar captura?"
+    RESULT=$?
+    if [ "$RESULT" = 0 ]; then
+	kill $STATUS 2>&1 1>/dev/null | zenity --progress --text="Captura encerrada!" --pulsate --auto-kill
+    fi
+
+    exit 0
+fi
+
+# Solicitando a servidor de streaming para conexao... 
+FONTECAPTURA=$(zenity --window-icon=/usr/share/pixmaps/gnome-windows.png --title "Captura de Audio/Video" \
+		--width 500 --height 300 --ok-label="Continuar"  \
+		--list --radiolist --column "Marque" --column "Origem da Captura" TRUE "Capturar FireWire e enviar p/ o DVSWITCH" FALSE "Capturar Usb e enviar p/ o DVSWITCH" FALSE "Capturar Desktop e enviar p/ o DVSWITCH" \
+		--text="Qual a fonte de captura?")
+RESULT=$?
+if [ "$RESULT" != 0 ]; then
+    zenity --window-icon=/usr/share/pixmaps/gnome-windows.png --title "Captura de Audio/Video" \
+	--error --text="Captura cancelada!"
+    exit 0
+fi
+
+# Iniciando a captura
+case "$FONTECAPTURA" in
+	"Capturar FireWire e enviar p/ o DVSWITCH")
+		do_start_firewire_dvswitch  >/dev/null | zenity --notification --window-icon=info.png --text "Captura do dispositivo FIREWIRE iniciada!"
+	;;
+	"Capturar Usb e enviar p/ o DVSWITCH")
+		DUSB=$(ls /dev/video*)
+		D=$(zenity --list --title="[[ Definindo Dispositivo de Captura ]]" --column="Dispositivo" $DUSB	--text="Selecione o dispositivo")
+		case $? in
+		0)
+			do_start_usb_dvswitch ${D} >/dev/null | zenity --notification --window-icon=info.png --text "Captura do dispositivo ${D} iniciada!"
+
+			;;
+		1)
+			zenity --title="[[ Definindo Dispositivo de Captura ]]" \
+				   --error --text="Captura CANCELADA."
+			exit 1
+			;;
+		-1)
+			zenity --title="[[ Definindo Dispositivo de Captura ]]" \
+				   --error --text="ERROR inesperado! Tente novamente."
+			exit 1
+			;;
+		esac
+	;;
+	"Capturar Desktop e enviar p/ o DVSWITCH")
+		do_start_desktop_dvswitch >/dev/null | zenity --notification --window-icon=info.png --text "Captura do DESKTOP iniciada!" 
+	;;
+esac
+
+exit 0

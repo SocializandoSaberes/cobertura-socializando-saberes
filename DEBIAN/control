@@ -1,0 +1,7 @@
+Package: cobertura-socializando-saberes
+Priority: optional
+Version: 0.1
+Architecture: amd64
+Maintainer: Coletivo Socializando Saberes
+Depends: dvswitch, dvsource, dvsink, ffmpeg2theora, oggfwd, libav-tools, zenity
+Description: Ferramentas (scripts) para cobertura colaborativa online (streaming tvweb) usando DVSWITCH, FFMPEG, AVCONV, etc. (Socializando Saberes). 

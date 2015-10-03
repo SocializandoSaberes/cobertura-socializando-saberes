@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=Captura Dispositivo
+Comment=Inicia a captura de A/V de um dispositivo.
+Exec=/usr/local/bin/cobertura-iniciar-captura
+Icon=/usr/share/icons/cobertura/camera-video.png
+Terminal=false
+Categories=GNOME;Cobertura;Internet

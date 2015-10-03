@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=Encerrar Ferramentas de Coberturas
+Comment=Encerra todos as ferramentas de cobertura.
+Exec=/usr/local/bin/cobertura-finalizar-transmissao
+Icon=/usr/share/icons/cobertura/application-exit.png
+Terminal=false
+Categories=GNOME;Cobertura;Internet

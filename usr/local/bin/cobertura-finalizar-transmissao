@@ -1,0 +1,112 @@
+#!/bin/bash
+#
+#########################################################################
+#
+# This file is part of "cobertura-socializando-saberes".
+#
+#    Foobar is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Foobar is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Tradução não-oficial:
+#
+#    Este arquivo é parte do programa Foobar
+#
+#    Foobar é um software livre; você pode redistribuí-lo e/ou 
+#    modificá-lo dentro dos termos da Licença Pública Geral GNU como 
+#    publicada pela Fundação do Software Livre (FSF); na versão 3 da 
+#    Licença, ou (na sua opinião) qualquer versão.
+#
+#    Este programa é distribuído na esperança de que possa ser  útil, 
+#    mas SEM NENHUMA GARANTIA; sem uma garantia implícita de ADEQUAÇÃO
+#    a qualquer MERCADO ou APLICAÇÃO EM PARTICULAR. Veja a
+#    Licença Pública Geral GNU para maiores detalhes.
+#
+#    Você deve ter recebido uma cópia da Licença Pública Geral GNU junto
+#    com este programa, Se não, veja <http://www.gnu.org/licenses/>.
+#
+#########################################################################
+#
+# cobertura-socializando-saberes
+# ---
+# Ferramentas (scripts) para cobertura colaborativa online (streaming) 
+# usando DVSWITCH, FFMPEG, AVCONV, etc.
+# ---
+# Autor: Junior Paixao <junior.campinas@gmail.com
+# Coletivo Socializando Saberes (http://socializandosaberes.net.br)
+# https://github.com/SocializandoSaberes/cobertura-socializando-saberes
+# --- 
+# Este script roda em qualquer GNU/Linux.
+# Assumimos que os pacotes ZENITY, VLC, FFMPEG, AVCONV (libav-tools), 
+# FFMPEG2THEORA, OGGFWD e o pacote DVSWITCH (dvswitch, dvsource e dvsink)
+# ja estao instalados.
+#
+#########################################################################
+
+PATH="$HOME/bin:/sbin:/usr/sbin:/usr/local/sbin:/bin:/usr/bin:/usr/local/bin"
+
+# Load the VERBOSE setting and other rcS variables
+. /lib/init/vars.sh
+
+# Define LSB log_* functions.
+. /lib/lsb/init-functions
+
+###################################################################
+zenity --question \
+--text="Voce tem certeza que deseja encerrar a transmissao?"
+
+case $? in
+	0)
+	  killall -9 dvgrab
+	  sleep 1
+          killall -9 dvswitch
+          sleep 1
+          killall -9 dvsink-files
+	  sleep 1
+	  killall -9 dvsource-alsa
+          sleep 1
+	  killall -9 dvsource-firewire
+          sleep 1
+	  killall -9 dvsink-command
+          sleep 1
+	  killall -9 ffmpeg
+	  sleep 1
+	  killall -9 avconv
+	  sleep 1
+	  killall -9 mplayer
+	  sleep 1
+	  killall -9 vlc
+	  sleep 1
+	  killall -9 cvlc
+	  sleep 1
+	  killall -9 zenity
+
+	  echo ""
+	  echo "Ok! Tudo pronto para iniciar uma nova transmissao."
+	  echo "---"
+	  sleep 2
+	;;
+	1)
+	  echo ""
+	  echo "Ok! Encerramento adiado."
+	  echo "---"
+	;;
+	-1)
+	  echo "Um erro inesperado ocorreu!"
+	  echo "---"
+	;;
+esac
+
+sleep 3
+
+exit 0
+

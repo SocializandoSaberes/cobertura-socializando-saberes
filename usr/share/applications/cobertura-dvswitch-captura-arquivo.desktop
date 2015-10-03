@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=Captura Arquivo de Imagem (PNG, JPG)
+Comment=Inicia a captura de uma imagem PNG ou JPG.
+Exec=/usr/local/bin/cobertura-abrir-arquivo
+Icon=/usr/share/icons/cobertura/drive-harddisk-system.png
+Terminal=false
+Categories=GNOME;Cobertura;Internet
