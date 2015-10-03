@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Encoding=UTF-8
-Name=Encerrar Ferramentas de Coberturas
+Name=Transmissão
 Comment=Inicia a transmissão de A/V para a internet.
 Exec=/usr/local/bin/cobertura-iniciar-transmissao
 Icon=/usr/share/icons/cobertura/network-wireless.png
