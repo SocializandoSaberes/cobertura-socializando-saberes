@@ -12,4 +12,4 @@ Os icones ficarao disponiveis no menu "Outros (Other)" do GNOME-SHELL.
 - Captura Áudio
 - Captura Arquivo
 - Transmissão
-- Encerrar Ferramentas de Coberturas
+- Encerrar Ferramentas de Coberturas 
