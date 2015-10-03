@@ -4,7 +4,6 @@ Encoding=UTF-8
 Name=DVSwitch
 Comment=Inicia o PAINEL do DVSWITCH.
 Exec=dvswitch
-Icon=/usr/share/icons/cobertura/video-display.pngComment=Inicia o DVSwitch.
+Icon=/usr/share/icons/cobertura/video-display.png
 Terminal=false
 Categories=GNOME;Cobertura;Internet
-
