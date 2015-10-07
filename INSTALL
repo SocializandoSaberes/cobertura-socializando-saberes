@@ -9,3 +9,24 @@
 (3) instalar pacote debian
     $ dpkg -i /tmp/cobertura-socializando-saberes_0.1_amd64.deb
 
+
+# OBS.: Caso encontre esta mensagem de erro:
+
+    A preparar para desempacotar cobertura-socializando-saberes_0.1_amd64.deb ...
+    A descompactar cobertura-socializando-saberes (0.1) ...
+    dpkg: problemas com dependências impedem a configuração de cobertura-socializando-saberes:
+     cobertura-socializando-saberes depende de ffmpeg2theora; porém:
+      Pacote ffmpeg2theora não está instalado.
+     cobertura-socializando-saberes depende de oggfwd; porém:
+      Pacote oggfwd não está instalado.
+
+    dpkg: erro ao processar o pacote cobertura-socializando-saberes (--install):
+     problemas de dependência - deixando desconfigurado
+    A processar 'triggers' para desktop-file-utils (0.22-1) ...
+    A processar 'triggers' para gnome-menus (3.13.3-6) ...
+    A processar 'triggers' para mime-support (3.58) ...
+    Erros foram encontrados durante o processamento de:
+     cobertura-socializando-saberes
+
+# RODE O COMANDO ABAIXO
+$ apt-get -f install
